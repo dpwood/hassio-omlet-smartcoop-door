@@ -1,9 +1,12 @@
 {
-  "domain": "omlet_smart_coop",
-  "name": "Omlet Smart Coop Door",
-  "documentation": "TBD",
-  "dependencies": [],
-  "codeowners": ["@kemathy"],
-  "requirements": [],
-  "version": "1.0"
-}
+    "domain": "omlet_smart_coop",
+    "name": "Omlet Smart Coop",
+    "documentation": "TBD",
+    "dependencies": [],
+    "codeowners": ["@dpwood"],
+    "requirements": ["smartcoop-python-sdk"],
+    "version": "1.0",
+    "integration_type": "service",
+    "iot_class": "cloud_push",
+    "config_flow": true
+  }

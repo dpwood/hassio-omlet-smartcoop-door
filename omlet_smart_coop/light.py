@@ -1,47 +1,61 @@
-"""Platform for light switch integration."""
-from . import DOMAIN, OmletAPI, OmletCoopEntity
+import logging
 
-async def async_setup_entry(hass, config_entry, async_add_entities):
+from smartcoop.api.models import Device
+
+from homeassistant.components.light import ColorMode, LightEntity
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+
+from .const import DOMAIN
+from .coordinator import OmletDataUpdateCoordinator
+from .entity import OmletCoopEntity
+
+_LOGGER = logging.getLogger(__name__)
+
+
+async def async_setup_entry(
+    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+) -> None:
     """Set up the light platform."""
-    api_key = hass.data[DOMAIN]["api_key"]
-    host = hass.data[DOMAIN]["host"]
-    session = hass.data[DOMAIN]["session"]
-    device_id = hass.data[DOMAIN]["device_id"]
-    async_add_entities([
-        OmletLightSwitch(api_key, host, session, device_id),
-    ])
 
-class OmletLightSwitch(OmletCoopEntity):
-    """Representation of a Light Switch for the coop light."""
+    coordinator: OmletDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
 
-    def __init__(self, api_key, host, session, device_id):
-        """Initialize the light switch."""
-        super().__init__(api_key, host, session)
-        self.device_id = device_id
-        self._is_on = False
+    async_add_entities(
+        [OmletLight(device_id, coordinator) for device_id in coordinator.data]
+    )
 
-    @property
-    def is_on(self):
-        """Return the state of the light."""
-        return self._is_on
+
+class OmletLight(OmletCoopEntity, LightEntity):
+    """Representation of a coop light."""
+
+    _attr_supported_color_modes = {ColorMode.ONOFF}
+
+    def __init__(
+        self,
+        device_id: str,
+        coordinator: OmletDataUpdateCoordinator,
+    ) -> None:
+        """Initialize a light."""
+        super().__init__(device_id, coordinator)
+
+        self._attr_name = f"Omlet Smart Coop {device_id} Light"
+        self._attr_unique_id = f"{self._device_id}-light"
 
     async def async_turn_on(self):
         """Turn on the light."""
-        api = OmletAPI(self.api_key, self.host, self.session)
-        if await api.control_device(self.device_id, 'on'):
-            self._is_on = True
-            self.async_write_ha_state()
+        if await self.coordinator.control_device(self._device_id, "on"):
+            await self.coordinator.async_request_refresh()
+        else:
+            _LOGGER.error("Failed to turn on light for device %s", self._device_id)
 
     async def async_turn_off(self):
         """Turn off the light."""
-        api = OmletAPI(self.api_key, self.host, self.session)
-        if await api.control_device(self.device_id, 'off'):
-            self._is_on = False
-            self.async_write_ha_state()
+        if await self.coordinator.control_device(self._device_id, "off"):
+            await self.coordinator.async_request_refresh()
+        else:
+            _LOGGER.error("Failed to turn off light for device %s", self._device_id)
 
-    async def async_update(self):
-        """Update the state of the light."""
-        api = OmletAPI(self.api_key, self.host, self.session)
-        data = await api.fetch_device_info(self.device_id)
-        if data:
-            self._is_on = data[0]['state']['light']['state'] == 'on'
+    @callback
+    def _update_attr(self, device: Device) -> None:
+        self._attr_is_on = device.state.light.state == "on"
