@@ -1,12 +1,13 @@
 {
     "domain": "omlet_smart_coop",
     "name": "Omlet Smart Coop",
-    "documentation": "TBD",
+    "documentation": "https://github.com/dpwood/hassio-omlet-smartcoop-door/wiki",
     "dependencies": [],
     "codeowners": ["@dpwood"],
-    "requirements": ["smartcoop-python-sdk"],
-    "version": "1.0",
+    "version": "0.3",
     "integration_type": "service",
     "iot_class": "cloud_push",
-    "config_flow": true
+    "config_flow": true,
+    "issue_tracker": "https://github.com/dpwood/hassio-omlet-smartcoop-door/issues",
+    "requirements": ["smartcoop-python-sdk==0.1.2"]
   }
