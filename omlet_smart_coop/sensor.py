@@ -57,7 +57,11 @@ class OmletBatterySensor(OmletCoopEntity, SensorEntity):
     @callback
     def _update_attr(self, device: Device) -> None:
         self._attr_native_value = device.state.general.batteryLevel
-        _LOGGER.debug("Updated door battery level for device %s", self._device_id)
+        _LOGGER.debug(
+            "Updated door battery level for device %s: %s%%",
+            self._device_id,
+            self._attr_native_value,
+        )
 
 
 class OmletDoorSensor(OmletCoopEntity, SensorEntity):

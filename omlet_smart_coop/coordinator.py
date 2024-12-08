@@ -33,7 +33,9 @@ class OmletDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Device]]):
             _LOGGER,
             name="omlet_data",
             update_method=self._async_update_data,
-            update_interval=timedelta(minutes=1),
+            update_interval=timedelta(
+                minutes=10  # TODO Make this change depending on whether a webhook token is defined
+            ),
         )
 
     async def _async_update_data(self) -> dict[str, Device]:
@@ -68,6 +70,14 @@ class OmletDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Device]]):
         headers = {"Authorization": f"Bearer {self.api_key}"}
         async with self.session.post(url, headers=headers) as response:
             return response.status == 204
+
+    async def update_single_entity(self, device_id):
+        """Fetch and update data for a single entity."""
+        # Fetch the updated data for the entity
+        new_data = await self.fetch_device_info(device_id)
+        self.data[device_id] = Device.from_json(new_data)
+        # Notify listeners
+        self.async_update_listeners()
 
     async def async_added_to_hass(self):
         """Register dispatcher listener when entity is added."""
