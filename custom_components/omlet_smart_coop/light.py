@@ -39,6 +39,8 @@ class OmletLight(OmletCoopEntity, LightEntity):
         """Initialize a light."""
         super().__init__(device_id, coordinator)
 
+        self._attr_color_mode = ColorMode.ONOFF
+
         self._attr_name = f"Omlet Smart Coop {device_id} Light"
         self._attr_unique_id = f"{self._device_id}-light"
 
@@ -58,9 +60,9 @@ class OmletLight(OmletCoopEntity, LightEntity):
 
     @callback
     def _update_attr(self, device: Device) -> None:
-        self._attr_is_on = device.state.light.state == "on"
+        self._attr_is_on = device.state.light.state in ("on", "onpending")
         _LOGGER.debug(
             "Updated light state for device %s: %s",
             self._device_id,
-            self._attr_is_on,
+            device.state.light.state,
         )
