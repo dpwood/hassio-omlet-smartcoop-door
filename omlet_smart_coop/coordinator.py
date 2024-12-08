@@ -14,7 +14,7 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .const import DOMAIN
+from .const import DOMAIN, REFRESH_INTERVAL
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -33,9 +33,7 @@ class OmletDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Device]]):
             _LOGGER,
             name="omlet_data",
             update_method=self._async_update_data,
-            update_interval=timedelta(
-                minutes=10  # TODO Make this change depending on whether a webhook token is defined
-            ),
+            update_interval=timedelta(seconds=entry.data.get(REFRESH_INTERVAL, 120)),
         )
 
     async def _async_update_data(self) -> dict[str, Device]:

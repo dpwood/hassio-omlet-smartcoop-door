@@ -1,9 +1,11 @@
+from urllib.error import HTTPError
+
 import voluptuous as vol
 
 from homeassistant import config_entries
 from homeassistant.const import CONF_API_KEY, CONF_HOST
 
-from .const import DOMAIN, WEBHOOK_TOKEN
+from .const import DOMAIN, REFRESH_INTERVAL, WEBHOOK_TOKEN
 
 
 @config_entries.HANDLERS.register(DOMAIN)
@@ -14,8 +16,17 @@ class OmletConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_user(self, user_input=None):
         """Handle the initial step."""
+        errors = {}
         if user_input is not None:
-            return self.async_create_entry(title="Omlet Coop", data=user_input)
+            try:
+                # TODO Test the API key
+                return self.async_create_entry(
+                    title="Omlet Smart Coop", data=user_input
+                )
+            except HTTPError:
+                errors["base"] = "invalid_api_key"
+
+            return self.async_create_entry(title="Omlet Smart Coop", data=user_input)
 
         data_schema = vol.Schema(
             {
@@ -27,6 +38,15 @@ class OmletConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         "description": "Create a key at https://smart.omlet.com/developers",
                     },
                 ): str,
+                vol.Required(
+                    REFRESH_INTERVAL,
+                    msg="Refresh Interval",
+                    default=120,
+                    description={
+                        "friendly_name": "Refresh Interval",
+                        "description": "Seconds between checking for updates at the Omlet server",
+                    },
+                ): int,
                 vol.Optional(
                     WEBHOOK_TOKEN,
                     msg="Webhook Token",
@@ -45,4 +65,8 @@ class OmletConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 ): str,
             }
         )
-        return self.async_show_form(step_id="user", data_schema=data_schema)
+        # TODO verify API key
+
+        return self.async_show_form(
+            step_id="user", data_schema=data_schema, errors=errors
+        )

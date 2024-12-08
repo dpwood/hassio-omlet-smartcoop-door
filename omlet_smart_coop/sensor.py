@@ -4,10 +4,8 @@ import logging
 
 from smartcoop.api.models import Device
 
-from homeassistant.components.cover import CoverEntity
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
@@ -52,13 +50,13 @@ class OmletBatterySensor(OmletCoopEntity, SensorEntity):
         super().__init__(device_id, coordinator)
 
         self._attr_name = f"Omlet Smart Coop {device_id} Battery"
-        self._attr_unique_id = "{self._device_id}-battery"
+        self._attr_unique_id = f"{self._device_id}-battery"
 
     @callback
     def _update_attr(self, device: Device) -> None:
         self._attr_native_value = device.state.general.batteryLevel
         _LOGGER.debug(
-            "Updated door battery level for device %s: %s%%",
+            "Updated battery level for device %s: %s%%",
             self._device_id,
             self._attr_native_value,
         )
@@ -70,6 +68,11 @@ class OmletDoorSensor(OmletCoopEntity, SensorEntity):
     @callback
     def _update_attr(self, device: Device) -> None:
         self._attr_native_value = device.state.door.state
+        _LOGGER.debug(
+            "Updated door state for device %s: %s",
+            self._device_id,
+            self._attr_native_value,
+        )
 
     def __init__(
         self,
@@ -80,4 +83,4 @@ class OmletDoorSensor(OmletCoopEntity, SensorEntity):
         super().__init__(device_id, coordinator)
 
         self._attr_name = f"Omlet Smart Coop {device_id} Door State"
-        self._attr_unique_id = "{self._device_id}-doorstate"
+        self._attr_unique_id = f"{self._device_id}-doorstate"

@@ -8,7 +8,7 @@ from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 
-from .const import DOMAIN, WEBHOOK_TOKEN
+from .const import DOMAIN, WEBHOOK_ID_KEY, WEBHOOK_TOKEN
 from .coordinator import OmletDataUpdateCoordinator
 
 PLATFORMS = [Platform.COVER, Platform.LIGHT, Platform.SENSOR]
@@ -28,14 +28,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         hass,
     )
 
-    # Register the webhook handler
-    async_register(
-        hass,
-        DOMAIN,
-        "Omlet Webhook",
-        DOMAIN,
-        async_handle_webhook,
-    )
+    if WEBHOOK_ID_KEY not in hass.data[DOMAIN]:
+        webhook_id = DOMAIN
+        # Register the webhook handler
+        async_register(
+            hass,
+            DOMAIN,
+            "Omlet Webhook",
+            webhook_id,
+            async_handle_webhook,
+        )
+
+        hass.data[DOMAIN][WEBHOOK_ID_KEY] = webhook_id
 
     # initial refresh
     await coordinator.async_config_entry_first_refresh()

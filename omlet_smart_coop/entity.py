@@ -1,7 +1,7 @@
 """Entity for Surepetcare."""
 
 from __future__ import annotations
-
+import logging
 from abc import abstractmethod
 
 from smartcoop.api.models import Device
@@ -13,6 +13,8 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import DOMAIN
 from .coordinator import OmletDataUpdateCoordinator
 
+_LOGGER = logging.getLogger(__name__)
+
 
 class OmletCoopEntity(CoordinatorEntity[OmletDataUpdateCoordinator]):
     """An implementation for Omlet entities."""
@@ -23,10 +25,10 @@ class OmletCoopEntity(CoordinatorEntity[OmletDataUpdateCoordinator]):
         coordinator: OmletDataUpdateCoordinator,
     ) -> None:
         """Initialize an Omlet entity."""
+        _LOGGER.debug(f"Creating {self.__class__.__name__} for device {device_id}")
         super().__init__(coordinator)
 
         self._device_id = device_id
-        # self._device_name = device_id
 
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._device_id)},

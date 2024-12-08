@@ -84,7 +84,7 @@ class OmletDoorCover(OmletCoopEntity, CoverEntity):
         self._attr_is_closing = state == "closepending"
         self._attr_is_opening = state == "openpending"
         _LOGGER.debug(
-            "Updated door state for device %s: %s",
+            "Updated door position for device %s: %s",
             self._device_id,
             "closed" if self.is_closed else "open",
         )

@@ -59,3 +59,8 @@ class OmletLight(OmletCoopEntity, LightEntity):
     @callback
     def _update_attr(self, device: Device) -> None:
         self._attr_is_on = device.state.light.state == "on"
+        _LOGGER.debug(
+            "Updated light state for device %s: %s",
+            self._device_id,
+            self._attr_is_on,
+        )
